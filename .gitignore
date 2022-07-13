@@ -1,0 +1,9 @@
+.*
+!.git*
+
+*.elf
+*.gba
+*.map
+
+build/
+tools/agbcc/
