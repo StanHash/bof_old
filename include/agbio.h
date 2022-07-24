@@ -103,6 +103,94 @@ enum
     BGCNT_AFFINE_SIZE_1024x1024 = BGCNT_AFFINE_SIZE(3),
 };
 
+// video bg scroll
+
+#define REG_BG0HOFS IOREG(u16, 0x04000010)
+#define REG_BG0VOFS IOREG(u16, 0x04000012)
+#define REG_BG1HOFS IOREG(u16, 0x04000014)
+#define REG_BG1VOFS IOREG(u16, 0x04000016)
+#define REG_BG2HOFS IOREG(u16, 0x04000018)
+#define REG_BG2VOFS IOREG(u16, 0x0400001A)
+#define REG_BG3HOFS IOREG(u16, 0x0400001C)
+#define REG_BG3VOFS IOREG(u16, 0x0400001E)
+
+// video bg affine
+
+#define REG_BG2PA IOREG(i16, 0x04000020)
+#define REG_BG2PB IOREG(i16, 0x04000022)
+#define REG_BG2PC IOREG(i16, 0x04000024)
+#define REG_BG2PD IOREG(i16, 0x04000026)
+
+#define REG_BG2X  IOREG(i32, 0x04000028)
+#define REG_BG2Y  IOREG(i32, 0x0400002C)
+
+#define REG_BG3PA IOREG(i16, 0x04000030)
+#define REG_BG3PB IOREG(i16, 0x04000032)
+#define REG_BG3PC IOREG(i16, 0x04000034)
+#define REG_BG3PD IOREG(i16, 0x04000036)
+
+#define REG_BG3X  IOREG(i32, 0x04000038)
+#define REG_BG3Y  IOREG(i32, 0x0400003C)
+
+// video window
+
+#define REG_WIN0H  IOREG(u16, 0x04000040)
+#define REG_WIN1H  IOREG(u16, 0x04000042)
+#define REG_WIN0V  IOREG(u16, 0x04000044)
+#define REG_WIN1V  IOREG(u16, 0x04000046)
+#define REG_WININ  IOREG(u16, 0x04000048)
+#define REG_WINOUT IOREG(u16, 0x0400004A)
+
+enum
+{
+    WINDOW_BG0_ENABLE   = 1 << 0,
+    WINDOW_BG1_ENABLE   = 1 << 1,
+    WINDOW_BG2_ENABLE   = 1 << 2,
+    WINDOW_BG3_ENABLE   = 1 << 3,
+    WINDOW_OBJ_ENABLE   = 1 << 4,
+    WINDOW_BLEND_ENABLE = 1 << 5,
+};
+
+// video mosaic
+
+#define REG_MOSAIC IOREG(u16, 0x0400004C)
+
+#define MOSAIC_BG_H(v) (((v) & 0xF) << 0)
+#define MOSAIC_BG_V(v) (((v) & 0xF) << 4)
+#define MOSAIC_OBJ_H(v) (((v) & 0xF) << 8)
+#define MOSAIC_OBJ_V(v) (((v) & 0xF) << 12)
+
+// video blend
+
+#define REG_BLDCNT   IOREG(u16, 0x04000050)
+#define REG_BLDALPHA IOREG(u16, 0x04000052)
+#define REG_BLDVAL   IOREG(u16, 0x04000054)
+
+#define BLEND_MODE(n) (((n) & 3) << 6)
+
+enum
+{
+    BLEND_TARGET_BG0      = 1 << 0,
+    BLEND_TARGET_BG1      = 1 << 1,
+    BLEND_TARGET_BG2      = 1 << 2,
+    BLEND_TARGET_BG3      = 1 << 3,
+    BLEND_TARGET_OBJ      = 1 << 4,
+    BLEND_TARGET_BD       = 1 << 5,
+
+    BLEND_MODE_NONE       = BLEND_MODE(0),
+    BLEND_MODE_ALPHA      = BLEND_MODE(1),
+    BLEND_MODE_WHITE      = BLEND_MODE(2),
+    BLEND_MODE_BLACK      = BLEND_MODE(3),
+
+    // Only used with BLEND_MODE_ALPHA
+    BLEND_TARGET2_BG0     = 1 << 8,
+    BLEND_TARGET2_BG1     = 1 << 9,
+    BLEND_TARGET2_BG2     = 1 << 10,
+    BLEND_TARGET2_BG3     = 1 << 11,
+    BLEND_TARGET2_OBJ     = 1 << 12,
+    BLEND_TARGET2_BD      = 1 << 13,
+};
+
 // irq
 
 #define REG_IE  IOREG(u16, 0x04000200)
@@ -111,20 +199,40 @@ enum
 
 enum
 {
-    IRQ_VBLANK          = 1 << 0,
-    IRQ_HBLANK          = 1 << 1,
-    IRQ_VCOUNT          = 1 << 2,
-    IRQ_TIMER_0         = 1 << 3,
-    IRQ_TIMER_1         = 1 << 4,
-    IRQ_TIMER_2         = 1 << 5,
-    IRQ_TIMER_3         = 1 << 6,
-    IRQ_SERIAL          = 1 << 7,
-    IRQ_DMA_0           = 1 << 8,
-    IRQ_DMA_1           = 1 << 9,
-    IRQ_DMA_2           = 1 << 10,
-    IRQ_DMA_3           = 1 << 11,
-    IRQ_KEYPAD          = 1 << 12,
-    IRQ_CARTRIDGE       = 1 << 13,
+    // Bit indices of IRQs
+    IRQ_INDEX_VBLANK,
+    IRQ_INDEX_HBLANK,
+    IRQ_INDEX_VCOUNT,
+    IRQ_INDEX_TIMER_0,
+    IRQ_INDEX_TIMER_1,
+    IRQ_INDEX_TIMER_2,
+    IRQ_INDEX_TIMER_3,
+    IRQ_INDEX_SERIAL,
+    IRQ_INDEX_DMA_0,
+    IRQ_INDEX_DMA_1,
+    IRQ_INDEX_DMA_2,
+    IRQ_INDEX_DMA_3,
+    IRQ_INDEX_KEYPAD,
+    IRQ_INDEX_CARTRIDGE,
+    IRQ_INDEX_MAX,
+};
+
+enum
+{
+    IRQ_VBLANK          = 1 << IRQ_INDEX_VBLANK,
+    IRQ_HBLANK          = 1 << IRQ_INDEX_HBLANK,
+    IRQ_VCOUNT          = 1 << IRQ_INDEX_VCOUNT,
+    IRQ_TIMER_0         = 1 << IRQ_INDEX_TIMER_0,
+    IRQ_TIMER_1         = 1 << IRQ_INDEX_TIMER_1,
+    IRQ_TIMER_2         = 1 << IRQ_INDEX_TIMER_2,
+    IRQ_TIMER_3         = 1 << IRQ_INDEX_TIMER_3,
+    IRQ_SERIAL          = 1 << IRQ_INDEX_SERIAL,
+    IRQ_DMA_0           = 1 << IRQ_INDEX_DMA_0,
+    IRQ_DMA_1           = 1 << IRQ_INDEX_DMA_1,
+    IRQ_DMA_2           = 1 << IRQ_INDEX_DMA_2,
+    IRQ_DMA_3           = 1 << IRQ_INDEX_DMA_3,
+    IRQ_KEYPAD          = 1 << IRQ_INDEX_KEYPAD,
+    IRQ_CARTRIDGE       = 1 << IRQ_INDEX_CARTRIDGE,
 };
 
 // waitstates
@@ -161,6 +269,62 @@ enum
     WAITCNT_PHI_OUT_MASK    = WAITCNT_PHI_OUT(3),
 
     WAITCNT_PREFETCH_ENABLE = 1 << 14,
+};
+
+// input
+
+#define REG_KEYINPUT IOREG(u16 const, 0x04000130)
+#define REG_KEYCNT   IOREG(u16, 0x04000132)
+
+enum
+{
+    // Bit indices of keys bits.
+    KEY_INDEX_A,
+    KEY_INDEX_B,
+    KEY_INDEX_SELECT,
+    KEY_INDEX_START,
+    KEY_INDEX_RIGHT,
+    KEY_INDEX_LEFT,
+    KEY_INDEX_UP,
+    KEY_INDEX_DOWN,
+    KEY_INDEX_R,
+    KEY_INDEX_L,
+    KEY_INDEX_MAX,
+};
+
+enum
+{
+    // Key bits as used by KEYINPUT and KEYCNT.
+    KEY_A               = 1 << KEY_INDEX_A,
+    KEY_B               = 1 << KEY_INDEX_B,
+    KEY_SELECT          = 1 << KEY_INDEX_SELECT,
+    KEY_START           = 1 << KEY_INDEX_START,
+    KEY_RIGHT           = 1 << KEY_INDEX_RIGHT,
+    KEY_LEFT            = 1 << KEY_INDEX_LEFT,
+    KEY_UP              = 1 << KEY_INDEX_UP,
+    KEY_DOWN            = 1 << KEY_INDEX_DOWN,
+    KEY_R               = 1 << KEY_INDEX_R,
+    KEY_L               = 1 << KEY_INDEX_L,
+};
+
+enum
+{
+    // Groupings of key bits.
+    KEYS_DPAD_X         = KEY_LEFT      | KEY_RIGHT,
+    KEYS_DPAD_Y         = KEY_UP        | KEY_DOWN,
+    KEYS_DPAD           = KEYS_DPAD_X   | KEYS_DPAD_Y,
+    KEYS_AB             = KEY_A         | KEY_B,
+    KEYS_LR             = KEY_L         | KEY_R,
+    KEYS_STARTSELECT    = KEY_START     | KEY_SELECT,
+    KEYS_BUTTONS        = KEYS_AB       | KEYS_LR       | KEYS_STARTSELECT,
+    KEYS_ALL            = KEYS_DPAD     | KEYS_BUTTONS,
+};
+
+enum
+{
+    KEY_IRQ_ENABLE       = 1 << 14,
+    KEY_IRQ_PRESS_ALL    = 1 << 15,
+    KEY_IRQ_PRESS_ANY    = !KEY_IRQ_PRESS_ALL,
 };
 
 // dma
@@ -223,6 +387,144 @@ enum
     DMA_IRQ_ENABLE      = 1 << 30,
     DMA_ENABLE          = 1 << 31,
 };
+
+#define DmaSet(dma_num, src, dest, control)                        \
+{                                                                  \
+    u32 volatile * regs = (u32 volatile *) &REG_DMA##dma_num##SRC; \
+    regs[0] = (u32 volatile)(src);                                 \
+    regs[1] = (u32 volatile)(dest);                                \
+    regs[2] = (u32 volatile)(control);                             \
+    regs[2];                                                       \
+}
+
+#define DMA_FILL(dma_num, value, dest, size, bit)                                             \
+{                                                                                             \
+    u##bit volatile tmp = (u##bit volatile)(value);                                           \
+    DmaSet(dma_num,                                                                           \
+           &tmp,                                                                              \
+           dest,                                                                              \
+           (DMA_ENABLE | DMA_START_NOW | DMA_##bit##BIT | DMA_SRC_FIXED | DMA_DST_INCREMENT)  \
+         | ((size)/(bit/8)));                                                                 \
+}
+
+#define DmaFill16(dma_num, value, dest, size) DMA_FILL(dma_num, value, dest, size, 16)
+#define DmaFill32(dma_num, value, dest, size) DMA_FILL(dma_num, value, dest, size, 32)
+
+// Note that the DMA clear macros cause the DMA control value to be calculated
+// at runtime rather than compile time. The size is divided by the DMA transfer
+// unit size (2 or 4 bytes) and then combined with the DMA control flags using a
+// bitwise OR operation.
+
+#define DMA_CLEAR(dma_num, dest, size, bit)  \
+{                                           \
+    u##bit volatile *_dest = (u##bit volatile *)(dest);     \
+    u32 _size = size;                       \
+    DmaFill##bit(dma_num, 0, _dest, _size);  \
+}
+
+#define DmaClear16(dma_num, dest, size) DMA_CLEAR(dma_num, dest, size, 16)
+#define DmaClear32(dma_num, dest, size) DMA_CLEAR(dma_num, dest, size, 32)
+
+#define DMA_COPY(dma_num, src, dest, size, bit)                                                  \
+    DmaSet(dma_num,                                                                              \
+           src,                                                                                  \
+           dest,                                                                                 \
+           (DMA_ENABLE | DMA_START_NOW | DMA_##bit##BIT | DMA_SRC_INCREMENT | DMA_DST_INCREMENT) \
+         | ((size)/(bit/8)))
+
+#define DmaCopy16(dma_num, src, dest, size) DMA_COPY(dma_num, src, dest, size, 16)
+#define DmaCopy32(dma_num, src, dest, size) DMA_COPY(dma_num, src, dest, size, 32)
+
+#define DmaStop(dma_num)                                         \
+{                                                               \
+    vu16 *regs = (vu16 *)REG_ADDR_DMA##dma_num;               \
+    regs[5] &= ~(DMA_START_MASK | DMA_DREQ_ON | DMA_REPEAT); \
+    regs[5] &= ~DMA_ENABLE;                                  \
+    regs[5];                                                 \
+}
+
+#define DmaCopyLarge(dma_num, src, dest, size, block, bit) \
+{                                                         \
+    const void *_src = src;                               \
+    void *_dest = (void *)(dest);                         \
+    u32 _size = size;                                     \
+    while (1)                                             \
+    {                                                     \
+        DmaCopy##bit(dma_num, _src, _dest, (block));       \
+        _src += (block);                                  \
+        _dest += (block);                                 \
+        _size -= (block);                                 \
+        if (_size <= (block))                             \
+        {                                                 \
+            DmaCopy##bit(dma_num, _src, _dest, _size);     \
+            break;                                        \
+        }                                                 \
+    }                                                     \
+}
+
+#define DmaClearLarge(dma_num, dest, size, block, bit) \
+{                                                     \
+	void *_dest = dest;                               \
+    u32 _size = size;                                 \
+    while (1)                                         \
+    {                                                 \
+        DmaFill##bit(dma_num, 0, _dest, (block));      \
+        _dest += (block);                             \
+        _size -= (block);                             \
+        if (_size <= (block))                         \
+        {                                             \
+            DmaFill##bit(dma_num, 0, _dest, _size);    \
+            break;                                    \
+        }                                             \
+    }                                                 \
+}
+
+#define DmaCopyLarge16(dma_num, src, dest, size, block) DmaCopyLarge(dma_num, src, dest, size, block, 16)
+#define DmaCopyLarge32(dma_num, src, dest, size, block) DmaCopyLarge(dma_num, src, dest, size, block, 32)
+
+#define DmaClearLarge16(dma_num, dest, size, block) DmaClearLarge(dma_num, dest, size, block, 16)
+#define DmaClearLarge32(dma_num, dest, size, block) DmaClearLarge(dma_num, dest, size, block, 32)
+
+#define DmaCopyDefvars(dma_num, src, dest, size, bit) \
+{                                                    \
+    const void *_src = src;                          \
+    void *_dest = (void *)(dest);                    \
+    u32 _size = size;                                \
+    DmaCopy##bit(dma_num, _src, _dest, _size);        \
+}
+
+#define DmaCopy16Defvars(dma_num, src, dest, size) DmaCopyDefvars(dma_num, src, dest, size, 16)
+#define DmaCopy32Defvars(dma_num, src, dest, size) DmaCopyDefvars(dma_num, src, dest, size, 32)
+
+#define DmaFillLarge(dma_num, fillval, dest, size, block, bit) \
+{                                                             \
+    void *_dest = (void *)(dest);                             \
+    u32 _size = (u32)(size);                                  \
+    while (1)                                                 \
+    {                                                         \
+        DmaFill##bit(dma_num, fillval, _dest, (block));        \
+        _dest += (block);                                     \
+        _size -= (block);                                     \
+        if (_size <= (block))                                 \
+        {                                                     \
+            DmaFill##bit(dma_num, fillval, _dest, _size);      \
+            break;                                            \
+        }                                                     \
+    }                                                         \
+}
+
+#define DmaFill16Large(dma_num, fillval, dest, size, block) DmaFillLarge(dma_num, fillval, dest, size, block, 16)
+#define DmaFill32Large(dma_num, fillval, dest, size, block) DmaFillLarge(dma_num, fillval, dest, size, block, 32)
+
+#define DmaFillDefvars(dma_num, fillval, dest, size, bit) \
+{                                                        \
+    void *_dest = (void *)(dest);                        \
+    u32 _size = (u##bit)(size);                          \
+    DmaFill##bit(dma_num, fillval, _dest, _size);         \
+}
+
+#define DmaFill16Defvars(dma_num, fillval, dest, size) DmaFillDefvars(dma_num, fillval, dest, size, 16)
+#define DmaFill32Defvars(dma_num, fillval, dest, size) DmaFillDefvars(dma_num, fillval, dest, size, 32)
 
 // timer
 
@@ -326,3 +628,33 @@ enum
     SOUND_4_ON          = 0x0008,
     SOUND_MASTER_ENABLE = 0x0080,
 };
+
+// memory
+
+// External Work RAM (256K)
+#define MEM_EWRAM               ((void *) 0x02000000)
+#define MEM_EWRAM_SIZE          ((usize) 0x40000)
+
+// Internal Work RAM (32K)
+#define MEM_IWRAM               ((void *) 0x03000000)
+#define MEM_IWRAM_SIZE          ((usize) 0x8000)
+
+// Video Palette (1K)
+#define MEM_PALETTE             ((void *) 0x05000000)
+#define MEM_PALETTE_SIZE        ((usize) 0x400)
+
+// Video RAM (96K)
+#define MEM_VRAM                ((void *) 0x06000000)
+#define MEM_VRAM_SIZE           ((usize) 0x18000)
+
+// Object Attribute Memory (1K)
+#define MEM_OAM                 ((void*) 0x07000000)
+#define MEM_OAM_SIZE            ((usize) 0x400)
+
+// Cartridge ROM (32M)
+#define MEM_ROM                 ((void const *) 0x08000000)
+#define MEM_ROM_SIZE            ((usize) 0x02000000)
+
+// Cartridge Static RAM (32K)
+#define MEM_SRAM                ((void *) 0x0E000000)
+#define MEM_SRAM_SIZE           ((usize) 0x8000)

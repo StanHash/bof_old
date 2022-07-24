@@ -1,9 +1,7 @@
     .section .rodata
 
-    .incbin "baserom.gba", 0x11FB18, (0x11FB38 - 0x11FB18) @ length: 0020
-
-    .global Unk_0811FB38
-Unk_0811FB38: @ 0811FB38
+    .global IntrTableTemplate
+IntrTableTemplate: @ 0811FB38
     .incbin "baserom.gba", 0x11FB38, (0x11FEA8 - 0x11FB38) @ length: 0370
 
     .global Unk_0811FEA8

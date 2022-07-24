@@ -32,7 +32,7 @@ __start:
     ldr r1, .L080001C0 @ =0x03007FFC
     adr r0, IntrMain
     str r0, [r1]
-    ldr r1, .L080001C4 @ =main
+    ldr r1, .L080001C4 @ =AgbMain
     mov lr, pc
     bx r1
     b .Lstart
@@ -98,7 +98,7 @@ IntrMain:
 
     .align 2, 0
 .L080001C0: .4byte 0x03007FFC
-.L080001C4: .4byte main
+.L080001C4: .4byte AgbMain
 .L080001C8: .4byte IntrTable
 
     endfunction IntrMain

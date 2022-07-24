@@ -369,6 +369,7 @@ void m4aSoundVSyncOn(void);
 void m4aSoundVSyncOff(void);
 void m4aSongNumStart(u16 n);
 void m4aSongNumStartOrChange(u16 n);
+void m4aSongNumStartOrContinue(u16 n);
 void m4aSongNumStop(u16 n);
 void m4aMPlayAllStop(void);
 void m4aMPlayStart(struct MusicPlayer * music_player, struct Song * song);

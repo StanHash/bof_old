@@ -37,7 +37,7 @@ OLD_CC1 := $(AGBCC_HOME)/bin/old_agbcc
 # ================
 
 CPPFLAGS := -I $(AGBCC_HOME)/include -iquote include -iquote . -nostdinc -undef
-CFLAGS   := -mthumb-interwork -Wall -Wno-unused -fhex-asm
+CFLAGS   := -g -mthumb-interwork -Wall -Wno-unused -fhex-asm
 ASFLAGS  := -mcpu=arm7tdmi -I include
 
 LDS := $(BUILD_NAME).lds

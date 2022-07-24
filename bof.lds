@@ -104,8 +104,6 @@ SECTIONS
         . = 0x01DFC0; Unk_0201DFC0 = .;
         . = 0x01FFC0; Unk_0201FFC0 = .;
         . = 0x020FC0; Unk_02020FC0 = .;
-        . = 0x020FC1; Unk_02020FC1 = .;
-        . = 0x020FC2; Unk_02020FC2 = .;
         . = 0x020FE0; Unk_02020FE0 = .;
         . = 0x02102C; Unk_0202102C = .;
         . = 0x0210C0; Unk_020210C0 = .;
@@ -170,7 +168,7 @@ SECTIONS
     iwram (NOLOAD) : ALIGN(4)
     {
         /* .bss */
-        . = 0x000000; Unk_03000000 = .;
+        . = 0x000000; src/code_080007C4.o(.bss);
         . = 0x000800; Unk_03000800 = .;
         . = 0x000804; Unk_03000804 = .;
         . = 0x000806; Unk_03000806 = .;
@@ -583,9 +581,7 @@ SECTIONS
         . = 0x0023FC; Unk_030023FC = .;
         . = 0x002400; Unk_03002400 = .;
         . = 0x002408; Unk_03002408 = .;
-        . = 0x002410; Unk_03002410 = .;
-        . = 0x002418; Unk_03002418 = .;
-        . = 0x00241B; Unk_0300241B = .;
+        . = 0x002410; *(.Unk_03002410);
         . = 0x002460; IntrTable = .;
         . = 0x00249C; Unk_0300249C = .;
         . = 0x0024A0; Unk_030024A0 = .;
@@ -891,6 +887,9 @@ SECTIONS
     {
         /* .text */
         src/crt0.o(.text);
+        src/main.o(.text);
+        src/code_08000274.o(.text);
+        src/code_080007C4.o(.text);
         asm/code.o(.text);
         src/m4a_1.o(.text);
         src/m4a.o(.text);
@@ -945,6 +944,8 @@ SECTIONS
         *libgcc.a:_negdi2.o(.text);
 
         /* .rodata */
+        . = ALIGN(4); src/main.o(.rodata);
+        . = ALIGN(4); src/code_08000274.o(.rodata);
         . = ALIGN(4); asm/rodata.o(.rodata);
         . = ALIGN(4); src/m4a.o(.rodata);
         . = ALIGN(4); asm/rodata_sound.o(.rodata);
