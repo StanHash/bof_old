@@ -1,12 +1,6 @@
     .section .rodata
 
-    .global IntrTableTemplate
-IntrTableTemplate: @ 0811FB38
-    .incbin "baserom.gba", 0x11FB38, (0x11FEA8 - 0x11FB38) @ length: 0370
-
-    .global Unk_0811FEA8
-Unk_0811FEA8: @ 0811FEA8
-    .incbin "baserom.gba", 0x11FEA8, (0x11FFDC - 0x11FEA8) @ length: 0134
+    .incbin "baserom.gba", 0x11FECC, (0x11FFDC - 0x11FECC) @ length: ????
 
     .global Unk_0811FFDC
 Unk_0811FFDC: @ 0811FFDC

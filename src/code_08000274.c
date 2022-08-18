@@ -9,8 +9,7 @@ enum
     DPAD_REPEAT_INTERVAL = 4,
 };
 
-SECTION(".Unk_03002410")
-struct Unk_03002410 Unk_03002410 = { 0 };
+struct Unk_03002410 COMMON(Unk_03002410) Unk_03002410 = { 0 };
 
 void func_08000274(struct Unk_03002410 * unk)
 {
@@ -21,9 +20,9 @@ void func_08000274(struct Unk_03002410 * unk)
     unk->keys_new = 0;
     unk->unk_01 = 0;
 
-    for (i = 0; i < NUM_UNK_03002410_08; i++)
+    for (i = 0; i < NUM_TASK; i++)
     {
-        for (j = 0; j < NUM_UNK_03002410_08_00; j++)
+        for (j = 0; j < NUM_TASK_00; j++)
         {
             *((unk->tasks + i)->unk_00 + j) = 0;
         }
@@ -39,7 +38,7 @@ void func_08000314(int arg_0)
     var_0C = Unk_03002410.unk_01;
     var_04 = Unk_03002410.tasks + var_0C;
 
-    var_04->unk_00[0] = ENUM_UNK_03002410_08_00_1;
+    var_04->unk_00[0] = ENUM_TASK_00_1;
     var_04->unk_00[2] = arg_0;
 
     while (TRUE)
@@ -50,11 +49,11 @@ void func_08000314(int arg_0)
 
             switch (var_08->unk_00[0])
             {
-            case ENUM_UNK_03002410_08_00_3:
-                var_08->unk_00[0] = ENUM_UNK_03002410_08_00_4;
+            case ENUM_TASK_00_3:
+                var_08->unk_00[0] = ENUM_TASK_00_4;
                 break;
 
-            case ENUM_UNK_03002410_08_00_4:
+            case ENUM_TASK_00_4:
                 if (var_08 == var_04)
                     return;
                 else
@@ -62,19 +61,19 @@ void func_08000314(int arg_0)
 
                 break;
 
-            case ENUM_UNK_03002410_08_00_1:
+            case ENUM_TASK_00_1:
                 if (var_08->unk_00[2] != 0)
                 {
                     var_08->unk_00[2]--;
 
                     if (var_08->unk_00[2] == 0)
-                        var_08->unk_00[0] = ENUM_UNK_03002410_08_00_4;
+                        var_08->unk_00[0] = ENUM_TASK_00_4;
                 }
 
                 // fallthrough
 
-            case ENUM_UNK_03002410_08_00_0:
-            case ENUM_UNK_03002410_08_00_2:
+            case ENUM_TASK_00_0:
+            case ENUM_TASK_00_2:
             default:
                 break;
             }
@@ -102,17 +101,17 @@ void func_080004B0(struct Unk_03002410 * unk)
 {
     while (TRUE)
     {
-        for (unk->unk_01 = 0; unk->unk_01 < NUM_UNK_03002410_08; unk->unk_01++)
+        for (unk->unk_01 = 0; unk->unk_01 < NUM_TASK; unk->unk_01++)
         {
             struct Task * var_04 = unk->tasks + unk->unk_01;
 
-            if (var_04->unk_00[0] == ENUM_UNK_03002410_08_00_3)
+            if (var_04->unk_00[0] == ENUM_TASK_00_3)
             {
-                var_04->unk_00[0] = ENUM_UNK_03002410_08_00_4;
+                var_04->unk_00[0] = ENUM_TASK_00_4;
                 continue;
             }
 
-            if (var_04->unk_00[0] == ENUM_UNK_03002410_08_00_4)
+            if (var_04->unk_00[0] == ENUM_TASK_00_4)
             {
                 unk->tasks[unk->unk_01].func(unk->tasks + unk->unk_01);
             }
@@ -133,7 +132,7 @@ struct Task * func_08000570(void (* func)(struct Task * self), struct Unk_030024
     else
         slot_real = func_08000640(unk);
 
-    unk->tasks[slot_real].unk_00[0] = ENUM_UNK_03002410_08_00_3;
+    unk->tasks[slot_real].unk_00[0] = ENUM_TASK_00_3;
     unk->tasks[slot_real].unk_00[2] = 0;
     unk->tasks[slot_real].func = func;
 
@@ -146,9 +145,9 @@ int func_08000640(struct Unk_03002410 * unk)
 {
     fu8 slot;
 
-    for (slot = 0; slot < NUM_UNK_03002410_08; slot++)
+    for (slot = 0; slot < NUM_TASK; slot++)
     {
-        if (unk->tasks[slot].unk_00[0] == ENUM_UNK_03002410_08_00_0)
+        if (unk->tasks[slot].unk_00[0] == ENUM_TASK_00_0)
             break;
     }
 

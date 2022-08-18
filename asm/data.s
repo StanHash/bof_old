@@ -1,17 +1,5 @@
     .data
 
-    .global Unk_0817B400
-Unk_0817B400: @ 0817B400
-    .incbin "baserom.gba", 0x17B400, (0x17B408 - 0x17B400) @ length: 0008
-
-    .global Unk_0817B408
-Unk_0817B408: @ 0817B408
-    .incbin "baserom.gba", 0x17B408, (0x17BCC8 - 0x17B408) @ length: 08C0
-
-    .global Unk_0817BCC8
-Unk_0817BCC8: @ 0817BCC8
-    .incbin "baserom.gba", 0x17BCC8, (0x17BCD8 - 0x17BCC8) @ length: 0010
-
     .global Unk_0817BCD8
 Unk_0817BCD8: @ 0817BCD8
     .incbin "baserom.gba", 0x17BCD8, (0x17BCF8 - 0x17BCD8) @ length: 0020

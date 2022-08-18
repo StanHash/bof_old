@@ -1,248 +1,54 @@
 #include "types.h"
 #include "macros.h"
+#include "attributes.h"
 #include "agbio.h"
 #include "agbsyscalls.h"
 #include "m4a.h"
 
-#include "attributes.h" // STRUCT_PAD
-
 #include "unknown.h"
 
-// TODO: this should probably by a hardwired address rather than a symbol
-extern IntrMainPtr Unk_03007FFC;
-
-// TODO: this should probably by a hardwired address rather than a symbol
-extern u16 Unk_03007FF8;
+// TODO: rename those properly and move them elsewhere
+#define INTR_MAIN_PTR (*(IntrMainPtr *) 0x03007FFC)
+#define INTR_CHECK (*(u16 *) 0x03007FF8)
 
 static u32 IntrMainRam[0x200];
+
+IntrFuncPtr const IntrTableTemplate[] =
+{
+    [IRQ_INDEX_VBLANK]    = OnVBlank_08000D68,
+    [IRQ_INDEX_HBLANK]    = OnHBlank_08000F74,
+    [IRQ_INDEX_VCOUNT]    = IntrDummy,
+    [IRQ_INDEX_TIMER_0]   = IntrDummy,
+    [IRQ_INDEX_TIMER_1]   = IntrDummy,
+    [IRQ_INDEX_TIMER_2]   = IntrDummy,
+    [IRQ_INDEX_TIMER_3]   = func_08117710,
+    [IRQ_INDEX_SERIAL]    = func_08117710,
+    [IRQ_INDEX_DMA_0]     = IntrDummy,
+    [IRQ_INDEX_DMA_1]     = IntrDummy,
+    [IRQ_INDEX_DMA_2]     = IntrDummy,
+    [IRQ_INDEX_DMA_3]     = IntrDummy,
+    [IRQ_INDEX_KEYPAD]    = IntrDummy,
+    [IRQ_INDEX_CARTRIDGE] = IntrDummy,
+    [IRQ_INDEX_UNK]       = IntrDummy,
+};
 
 void IntrInit(void)
 {
     fu8 i;
 
-    for (i = 0; i <= IRQ_INDEX_MAX; i++)
+    for (i = 0; i < IRQ_INDEX_MAX; i++)
         IntrTable[i] = IntrTableTemplate[i];
 
     DmaCopy16(3, IntrMain, IntrMainRam, sizeof(IntrMainRam));
-    Unk_03007FFC = (IntrMainPtr) IntrMainRam;
+    INTR_MAIN_PTR = (IntrMainPtr) IntrMainRam;
 
     REG_IME = TRUE;
     REG_IE = IRQ_VBLANK | IRQ_CARTRIDGE;
     REG_DISPSTAT = LCD_VBLANK_IRQ_ENABLE;
 
-    Unk_0300249C = Unk_0817B400[0];
+    MainFunc = Unk_0817B400[0];
     IntrTable[IRQ_INDEX_VBLANK] = OnVBlank_08000D68;
 }
-
-enum
-{
-    FLAG_UNK_03004ED8_0 = 1 << 0,
-};
-
-enum
-{
-    FLAG_UNK_030023C4_BIT_0 = 1 << 0,
-    FLAG_UNK_030023C4_WINDIM = 1 << 3,
-
-    FLAG_UNK_030023C4_INHDMA = 1 << 10,
-
-    FLAG_UNK_030023C4_BG0TM = 1 << 16,
-    FLAG_UNK_030023C4_BG1TM = 1 << 17,
-    FLAG_UNK_030023C4_BG2TM = 1 << 18,
-    FLAG_UNK_030023C4_BG3TM = 1 << 19,
-
-    FLAG_UNK_030023C4_BIT_20 = 1 << 20,
-
-    FLAG_UNK_030023C4_ANYTM = FLAG_UNK_030023C4_BG0TM | FLAG_UNK_030023C4_BG1TM | FLAG_UNK_030023C4_BG2TM | FLAG_UNK_030023C4_BG3TM,
-};
-
-enum
-{
-    RGB_SHIFT_R = 0,
-    RGB_SHIFT_G = 5,
-    RGB_SHIFT_B = 10,
-};
-
-enum
-{
-    RGB_MASK_R = 0x1F << RGB_SHIFT_R,
-    RGB_MASK_G = 0x1F << RGB_SHIFT_G,
-    RGB_MASK_B = 0x1F << RGB_SHIFT_B,
-};
-
-enum
-{
-    FLAG_UNK_030023AC_0 = (1 << 0),
-    FLAG_UNK_030023AC_1 = (1 << 1),
-    FLAG_UNK_030023AC_2 = (1 << 2),
-    FLAG_UNK_030023AC_3 = (1 << 3),
-    FLAG_UNK_030023AC_4 = (1 << 4),
-    FLAG_UNK_030023AC_5 = (1 << 5),
-    FLAG_UNK_030023AC_6 = (1 << 6),
-    FLAG_UNK_030023AC_7 = (1 << 7),
-
-    FLAG_UNK_030023AC_01234 = FLAG_UNK_030023AC_0 | FLAG_UNK_030023AC_1 | FLAG_UNK_030023AC_2 | FLAG_UNK_030023AC_3 | FLAG_UNK_030023AC_4,
-};
-
-enum
-{
-    ENUM_FUNC_0800176C_ARG_0,
-    ENUM_FUNC_0800176C_ARG_1,
-};
-
-struct Unk_03005350
-{
-    /* 00 */ u8 unk_00;
-    /* 01 */ u8 unk_01;
-    /* 02 */ u8 unk_02;
-    /* 03 */ STRUCT_PAD(0x03, 0x04);
-    /* 04 */ u8 unk_04;
-    /* 05 */ STRUCT_PAD(0x05, 0x08);
-    /* 08 */ u16 unk_08;
-    /* 0A */ STRUCT_PAD(0x0A, 0x0C);
-    /* 0C */ u32 unk_0C;
-    /* 10 */ u8 unk_10;
-    /* 11 */ u8 unk_11;
-    /* 12 */ i16 pa, pb, pc, pd;
-    /* 1A */ STRUCT_PAD(0x1A, 0x1C);
-    /* 1C */ i32 x, y;
-    /* 24 */ STRUCT_PAD(0x24, 0x25);
-    /* 25 */ u8 unk_25;
-    /* 26 */ STRUCT_PAD(0x26, 0x5B);
-    /* 5B */ u8 unk_5B;
-};
-
-struct Unk_03005C44
-{
-    /* 00 */ u8 unk_00; // "hdma" chunk len
-    /* 01 */ u8 unk_01; // other "hdma" chunk len
-    /* 02 */ u8 unk_02; // ?
-};
-
-struct Unk_030055D0
-{
-    /* 00 */ STRUCT_PAD(0x00, 0x2A);
-    /* 2A */ i8 unk_2A;
-};
-
-struct Unk_0202DBD0
-{
-    /* 000 */ STRUCT_PAD(0x000, 0x2A9);
-    /* 2A9 */ u8 unk_2A9; // sound/music enable?
-    /* 2AA */ STRUCT_PAD(0x2AA, 0x500);
-};
-
-struct Unk_030051B0
-{
-    /* 00 */ STRUCT_PAD(0x00, 0x0A);
-    /* 0A */ u8 unk_0A;
-};
-
-struct Unk_030037E0
-{
-    /* 00 */ STRUCT_PAD(0x00, 0x02);
-    /* 02 */ u16 unk_02;
-    /* 04 */ STRUCT_PAD(0x04, 0x06);
-    /* 06 */ u16 unk_06;
-};
-
-extern void func_08000E24(void);
-extern void func_08001050(u8 * unused_0);
-extern void func_08001188(void);
-extern void func_08001228(void);
-extern void func_08001920(void);
-extern void func_08001D38(struct Task * self);
-extern void func_0800641C(struct Task * self);
-extern void func_080452F4(void * unk);
-extern void func_08047848(void * unk);
-extern void func_080682C0(void);
-extern void func_08068300(void);
-extern void func_0806A378(u16 arg_0);
-extern void func_0806AA04(u8 arg_0);
-extern void func_08072E3C(void);
-
-extern u16 Unk_030024A8;
-extern u8 Unk_03004ED8;
-extern u16 Unk_03002594; // input for func_0806AA04
-extern u16 Unk_030023A0; // some DispControl
-extern u16 Unk_03002374; // some BlendVal
-extern u8 Unk_030023AC; // some color fade flags
-extern u8 Unk_03004140;
-extern u8 Unk_02020FC0[8];
-extern u32 Unk_030023C4; // some flags?
-extern void * Unk_03004EC0;
-extern u16 Unk_03002350; // Bg0Cnt
-extern u16 Unk_03002370; // Bg1Cnt
-extern u16 Unk_03002400; // Bg2Cnt
-extern u16 Unk_030023A8; // Bg3Cnt
-extern u16 Unk_030023B0; // Bg0HOffset
-extern u16 Unk_030023F0; // Bg0VOffset
-extern u16 Unk_0300237C; // Bg1HOffset
-extern u16 Unk_03002394; // Bg1VOffset
-extern u16 Unk_03002384; // Bg2HOffset
-extern u16 Unk_030023B4; // Bg2VOffset
-extern u16 Unk_030023FC; // Bg3HOffset
-extern u16 Unk_03002398; // Bg3VOffset
-extern i32 Unk_0300238C; // some Bg2X
-extern i32 Unk_03002388; // some Bg2Y
-extern u16 Unk_03004104; // BgExtraHOffset
-extern u16 Unk_03004E24; // BgExtraVOffset
-extern u8 Unk_030023C8; // some BgHOffsetAddend
-extern u8 Unk_0300239C; // some BgVOffsetAddend
-extern u8 Unk_03004E14; // some bool?
-extern struct Unk_03005350 Unk_03005350;
-extern u16 Unk_030023BC; // some BlendCnt
-extern u16 Unk_030023D8; // some BlendAlpha
-extern u16 Unk_0300559C; // some Mosaic
-extern u16 Unk_030023B8; // some WinIn
-extern u16 Unk_030023F4; // some WinOut
-extern u16 Unk_03002408; // some Win0H
-extern u16 Unk_030023F8; // some Win0V
-extern u16 Unk_03002354; // some Win1H
-extern u16 Unk_030023DC; // some Win1V
-extern int Unk_0202D2C0;
-extern u8 Unk_03004E1C; // some bool?
-extern void const * Unk_02019E00[];
-extern void * Unk_0200B820[];
-extern u16 Unk_02019FC0[0x400]; // Bg0Tm
-extern u16 Unk_0201A7C0[0x400]; // Bg1Tm
-extern u16 Unk_0201AFC0[0x400]; // Bg2Tm
-extern u16 Unk_0201B7C0[0x400]; // Bg3Tm
-extern u8 Unk_02011DA0[0xA00]; // "hdma" buffer
-extern u16 Unk_030024A8; // "hdma" offset
-extern struct Unk_03005C44 Unk_03005C44;
-extern void * Unk_03005C3C; // "hdma" dst
-extern u8 Unk_03005178;
-extern u16 const * Unk_030054F8; // palette transfer buf
-extern u8 Unk_03004EBC; // palette transfer id
-extern u16 Unk_03005C50; // palette transfer length
-extern u8 Unk_0200BE80[]; // vdma buf
-extern void * Unk_03002390; // vdma dst
-extern u16 Unk_03002378; // vdma length
-extern void const * Unk_03002380; // vdma src
-extern u8 Unk_020213C0[]; // another vdma buf?
-extern u8 Unk_030023CC;
-extern struct Unk_030055D0 Unk_030055D0;
-extern u8 Unk_020127A0[0xA00]; // other "hdma" buffer
-extern u32 Unk_03004E20; // some red
-extern u32 Unk_03003230; // some blue
-extern u32 Unk_03004CE0; // some green
-extern u16 Unk_0200AA10[]; // some colors
-extern u8 Unk_03005254; // some intensity q4
-extern u8 Unk_030053B4; // some intensity q4
-extern u16 Unk_030054F0; // some sound related counter
-extern struct Unk_0202DBD0 Unk_0202DBD0; // big struct. user options?
-extern struct Task * Unk_030024A0; // sound related task
-extern u8 Unk_0300412C; // some song id
-extern u8 Unk_02005810[]; // ?
-extern u8 CONST_DATA Unk_0821646E;
-extern u8 Unk_030055CC; // ?
-extern u16 Unk_03004EC8; // ?
-extern u8 Unk_0202B1C0[]; // ?
-extern struct Unk_030037E0 Unk_030037E0; // ?
-extern u16 Unk_03003104; // ?
-extern u16 Unk_03004E10; // ?
-extern struct Unk_030051B0 Unk_030051B0; // ?
 
 void SyncDisp(void)
 {
@@ -252,8 +58,8 @@ void SyncDisp(void)
     {
         func_08001228();
         func_0806AA04(Unk_03002594);
-        REG_DISPCNT = Unk_030023A0;
-        REG_BLDVAL = Unk_03002374;
+        REG_DISPCNT = DispCnt;
+        REG_BLDVAL = BlendVal;
         Unk_030023AC = Unk_03004140;
         func_08001050(Unk_02020FC0 + 1);
 
@@ -271,34 +77,34 @@ void SyncDisp(void)
         func_08072E3C();
     }
 
-    REG_BG0CNT = Unk_03002350;
-    REG_BG1CNT = Unk_03002370;
-    REG_BG2CNT = Unk_03002400;
-    REG_BG3CNT = Unk_030023A8;
+    REG_BG0CNT = Bg0Cnt;
+    REG_BG1CNT = Bg1Cnt;
+    REG_BG2CNT = Bg2Cnt;
+    REG_BG3CNT = Bg3Cnt;
 
     if (Unk_030023C4 & FLAG_UNK_030023C4_BIT_20)
     {
-        REG_BG0HOFS = Unk_030023B0;
-        REG_BG0VOFS = Unk_030023F0;
-        REG_BG1HOFS = Unk_0300237C + Unk_03004104;
-        REG_BG1VOFS = Unk_03002394 + Unk_03004E24;
-        REG_BG2HOFS = Unk_03002384 + Unk_03004104;
-        REG_BG2VOFS = Unk_030023B4 + Unk_03004E24;
-        REG_BG3HOFS = Unk_030023FC;
-        REG_BG3VOFS = Unk_03002398;
-        REG_BG2X = Unk_0300238C;
-        REG_BG2Y = Unk_03002388;
+        REG_BG0HOFS = Bg0HOffset;
+        REG_BG0VOFS = Bg0VOffset;
+        REG_BG1HOFS = Bg1HOffset + BgExtraHOffset;
+        REG_BG1VOFS = Bg1VOffset + BgExtraVOffset;
+        REG_BG2HOFS = Bg2HOffset + BgExtraHOffset;
+        REG_BG2VOFS = Bg2VOffset + BgExtraVOffset;
+        REG_BG3HOFS = Bg3HOffset;
+        REG_BG3VOFS = Bg3VOffset;
+        REG_BG2X = Bg2X_0300238C;
+        REG_BG2Y = Bg2Y_03002388;
     }
     else
     {
-        REG_BG0HOFS = Unk_030023B0 + Unk_030023C8 + Unk_03004104;
-        REG_BG0VOFS = Unk_030023F0 + Unk_0300239C + Unk_03004E24;
-        REG_BG1HOFS = Unk_0300237C + Unk_030023C8 + Unk_03004104;
-        REG_BG1VOFS = Unk_03002394 + Unk_0300239C + Unk_03004E24;
-        REG_BG2HOFS = Unk_03002384 + Unk_030023C8 + Unk_03004104;
-        REG_BG2VOFS = Unk_030023B4 + Unk_0300239C + Unk_03004E24;
-        REG_BG3HOFS = Unk_030023FC + Unk_030023C8 + Unk_03004104;
-        REG_BG3VOFS = Unk_03002398 + Unk_0300239C + Unk_03004E24;
+        REG_BG0HOFS = Bg0HOffset + Unk_030023C8 + BgExtraHOffset;
+        REG_BG0VOFS = Bg0VOffset + Unk_0300239C + BgExtraVOffset;
+        REG_BG1HOFS = Bg1HOffset + Unk_030023C8 + BgExtraHOffset;
+        REG_BG1VOFS = Bg1VOffset + Unk_0300239C + BgExtraVOffset;
+        REG_BG2HOFS = Bg2HOffset + Unk_030023C8 + BgExtraHOffset;
+        REG_BG2VOFS = Bg2VOffset + Unk_0300239C + BgExtraVOffset;
+        REG_BG3HOFS = Bg3HOffset + Unk_030023C8 + BgExtraHOffset;
+        REG_BG3VOFS = Bg3VOffset + Unk_0300239C + BgExtraVOffset;
     }
 
     if (Unk_03004E14 != 0)
@@ -311,18 +117,18 @@ void SyncDisp(void)
         REG_BG2PC = Unk_03005350.pc;
     }
 
-    REG_BLDCNT = Unk_030023BC;
-    REG_BLDALPHA = Unk_030023D8;
-    REG_MOSAIC = Unk_0300559C;
-    REG_WININ = Unk_030023B8;
-    REG_WINOUT = Unk_030023F4;
+    REG_BLDCNT = BlendCnt;
+    REG_BLDALPHA = BlendAlpha;
+    REG_MOSAIC = Mosaic;
+    REG_WININ = WinIn;
+    REG_WINOUT = WinOut;
 
     if (Unk_030023C4 & FLAG_UNK_030023C4_WINDIM)
     {
-        REG_WIN0H = Unk_03002408;
-        REG_WIN0V = Unk_030023F8;
-        REG_WIN1H = Unk_03002354;
-        REG_WIN1V = Unk_030023DC;
+        REG_WIN0H = Win0H;
+        REG_WIN0V = Win0V;
+        REG_WIN1H = Win1H;
+        REG_WIN1V = Win1V;
     }
 
     if (Unk_0202D2C0 != 0)
@@ -348,7 +154,7 @@ void SyncDisp(void)
 
 void OnVBlank_08000D68(void)
 {
-    Unk_03007FF8 |= IRQ_VBLANK;
+    INTR_CHECK |= IRQ_VBLANK;
 
     func_08001188();
 
@@ -362,7 +168,7 @@ void OnVBlank_08000D68(void)
 
 void OnVBlank_08000DC8(void)
 {
-    Unk_03007FF8 |= IRQ_VBLANK;
+    INTR_CHECK |= IRQ_VBLANK;
 
     func_08001188();
 
@@ -415,14 +221,14 @@ void OnHBlank_08000F74(void)
 
     Unk_030023C4 &= ~FLAG_UNK_030023C4_INHDMA;
 
-    Unk_03007FF8 = IRQ_HBLANK;
+    INTR_CHECK = IRQ_HBLANK;
 }
 
-void func_08001044(void)
+void IntrDummy(void)
 {
 }
 
-void func_08001050(u8 * unused_0)
+void func_08001050(void const * unused_0)
 {
     // TODO: constants!
 
@@ -572,7 +378,7 @@ u16 const * func_080012FC(u16 const * pal)
         b = MIN(31, b);
 
         rgb = (r << RGB_SHIFT_R) | ((g << RGB_SHIFT_G) & RGB_MASK_G) | ((b << RGB_SHIFT_B) & RGB_MASK_B);
-        Unk_0200AA10[i] = rgb & 0x7FFF;
+        Unk_0200AA10[i] = rgb & (RGB_MASK_R | RGB_MASK_G | RGB_MASK_B);
 
         pal++;
     }
@@ -588,7 +394,7 @@ void func_08001678(struct Task * self)
 
     if (Unk_030054F0 == 0)
     {
-        if (Unk_0202DBD0.unk_2A9 != 0)
+        if (SavedGameState.unk_2A9 != 0)
         {
             if (*var_04 == ENUM_FUNC_0800176C_ARG_0)
             {
@@ -601,18 +407,18 @@ void func_08001678(struct Task * self)
         }
 
         Unk_030054F0 = 0;
-        Unk_030024A0->unk_00[0] = ENUM_UNK_03002410_08_00_0;
+        Unk_030024A0->unk_00[0] = ENUM_TASK_00_0;
         Unk_03002410.unk_00--;
     }
 }
 
-void func_0800176C(u16 arg_00, u8 arg_02)
+void func_0800176C(fu16 arg_00, fu8 arg_02)
 {
     i8 * var_04;
 
     if (Unk_030054F0 == 0)
     {
-        if (Unk_0202DBD0.unk_2A9 != 0)
+        if (SavedGameState.unk_2A9 != 0)
         {
             if (arg_02 == ENUM_FUNC_0800176C_ARG_0)
             {
@@ -658,12 +464,12 @@ void func_080018B0(void)
 
 void func_080018D0(void)
 {
-    Unk_0300249C();
+    MainFunc();
 }
 
 void func_080018E8(void)
 {
-    if (Unk_0300249C == func_08001920)
+    if (MainFunc == OnMain_08001920)
         m4aSoundMain();
 
     VBlankIntrWait();
@@ -675,16 +481,22 @@ void func_0800190C(void)
     SyncDisp();
 }
 
-void func_08001920(void)
+void OnMain_08001920(void)
 {
     m4aSoundMain();
     VBlankIntrWait();
     SyncDisp();
 }
 
-void func_08001938(u8 id)
+MainFuncPtr CONST_DATA Unk_0817B400[] =
 {
-    Unk_0300249C = Unk_0817B400[id];
+    func_0800190C,
+    OnMain_08001920,
+};
+
+void func_08001938(fu8 id)
+{
+    MainFunc = Unk_0817B400[id];
 
     if (id == 0)
     {
@@ -713,7 +525,7 @@ void func_0800198C(struct Task * self)
     Unk_030055CC = 0;
     Unk_030023C4 &= ~FLAG_UNK_030023AC_5;
 
-    DmaFill32(3, 0, &Unk_0202DBD0, sizeof(Unk_0202DBD0));
+    DmaFill32(3, 0, &SavedGameState, sizeof(SavedGameState));
 
     DmaFill32(3, 0, MEM_VRAM, 0x18000);
 
@@ -724,10 +536,10 @@ void func_0800198C(struct Task * self)
     func_080452F4(Unk_0202B1C0);
 
     Unk_030023CC = 0;
-    Unk_030023A0 = 0;
-    Unk_030023A0 = VIDEO_BG0_ENABLE;
-    Unk_03003104 = Unk_030037E0.unk_02;
-    Unk_03004E10 = Unk_030037E0.unk_06;
+    DispCnt = 0;
+    DispCnt = VIDEO_BG0_ENABLE;
+    Unk_03003104 = Unk_030037E0[0].unk_002;
+    Unk_03004E10 = Unk_030037E0[0].unk_006;
 
     VBlankIntrWait();
     REG_DISPCNT = 0;
@@ -751,11 +563,423 @@ void func_08001B2C(struct Task * self)
         Unk_030051B0.unk_0A = 1;
 }
 
-void func_08001B6C(u8 arg_0, u32 arg_4)
+void func_08001B6C(fu8 arg_0, u32 arg_4)
 {
     arg_0 = 0;
 }
 
 void func_08001B88(u32 arg_0)
 {
+}
+
+// idk why this is here but it is
+#include "data/mosaic_table.h"
+
+TaskFunc_t CONST_DATA Unk_0817BCC8[] =
+{
+    func_08001D38,
+    func_08001F5C,
+    func_0800198C,
+    func_08001B98,
+};
+
+void func_08001B98(struct Task * self)
+{
+    Unk_03004108 = 2;
+    Unk_030055D0.unk_2A = 0;
+    Unk_030055D0.unk_2B = 0;
+    Unk_030055D0.unk_2C = 0;
+    Unk_030055D0.unk_2D = 0;
+    Unk_030055D0.unk_3F = 0;
+    Unk_030055D0.unk_40 = 0;
+    Unk_030055D0.unk_41 = 0;
+    Unk_030055D0.unk_42 = 0;
+    Unk_030055D0.unk_31 = 0;
+    SavedGameState.unk_2AF = 0;
+    SavedGameState.unk_2B0 = 0;
+    SavedGameState.unk_2B1 = 0;
+    SavedGameState.unk_2B2 = 0;
+    Unk_03002378 = 0;
+    func_08001848();
+    Unk_03003238 = 0;
+    func_080621D4(0x100);
+    Unk_030051B0.unk_0A = 0;
+    Unk_030037E0[0].unk_088 = 0;
+    Unk_030055D0.unk_33 = 0;
+    Unk_03004E14 = 0;
+    Unk_030023C4 &= ~FLAG_UNK_030023AC_7;
+    (Unk_03002410.tasks + Unk_03002410.unk_01)->func = Unk_0817BCC8[Unk_03004108];
+}
+
+void func_08001D38(struct Task * self)
+{
+    fu16 var_04; // NOTE: unused
+    fu8 i;
+
+    Unk_030023C4 &= ~FLAG_UNK_030023C4_BIT_9;
+
+    if (Unk_03005324 != 0)
+    {
+        Unk_030023C8 = 8;
+        Unk_030023A4 = 8;
+        Unk_0300239C = 32;
+        Unk_030023D4 = 32;
+        Unk_030037E0[0].unk_002 = SavedGameState.unk_006;
+        Unk_030037E0[0].unk_006 = SavedGameState.unk_00A;
+        Unk_03003104 = SavedGameState.unk_006;
+        Unk_03004E10 = SavedGameState.unk_00A;
+    }
+
+    if (Unk_030055D0.unk_31 != 4)
+    {
+        func_08005E38();
+    }
+
+    Unk_030023C4 &= ~FLAG_UNK_030023C4_WINDIM;
+    Unk_03005324 = 0;
+    Unk_03004EB8 = 0x3000;
+    Unk_03004ED0 = 0x2000;
+    Unk_03004134 = 0xFF;
+
+    func_0804B6BC(Unk_030037E0);
+
+    Unk_03004EC0 = Unk_02005810;
+
+    if (Unk_08181F40 == 0)
+    {
+        SetFlag_080025E8(0x27);
+        func_08068B78(0x06);
+    }
+
+    Unk_0300310C = 0;
+    Unk_03004108 = 0;
+
+    func_0800299C();
+
+    if (Unk_03003110.unk_A4 == 0)
+    {
+        for (i = 0; i < 4; i++)
+        {
+            if (((Unk_030037E0 + i)->unk_094 & 0xFFFF0000) != 0)
+            {
+                (Unk_030037E0 + i)->unk_094 = 0;
+            }
+        }
+    }
+
+    Unk_030051A8 = 0;
+    Unk_03004108 = 1;
+
+    if (Unk_03004E14 == 0 && Unk_03003110.unk_A4 != 0x56 && Unk_03003110.unk_A4 != 0x7F && Unk_03003238 == 0 && Unk_03004144 == 0)
+        Unk_03005BA4 = 0;
+
+    Unk_03004144 = 0;
+
+    self->func = func_08001F5C;
+}
+
+void func_08001F5C(struct Task * self)
+{
+    u32 dummy; // NOTE: unused
+
+    Unk_03004EC0 = Unk_03004EE0;
+
+    Unk_030055D0.unk_10++;
+
+    func_08065FAC();
+    func_08038AA8();
+
+    if (Unk_03005324 != 0)
+    {
+        Unk_03004E1C = 0;
+        Unk_030055D0.unk_2F = 0;
+        self->func = Unk_0817BCC8[Unk_03004108];
+        return;
+    }
+
+    if (Unk_08181F40 != 0)
+        func_08006D20();
+
+    if (Unk_03005324 != 0)
+    {
+        Unk_03004E1C = 0;
+        Unk_030055D0.unk_2F = 0;
+        self->func = Unk_0817BCC8[Unk_03004108];
+        return;
+    }
+
+    if (Unk_0300410C != 0)
+    {
+        Unk_0300410C = 0;
+        return;
+    }
+
+    if ((Unk_030055D0.unk_33 & 0x80) != 0)
+    {
+        func_08002288(self);
+        return;
+    }
+    else if (Unk_030055D0.unk_33 != 0)
+    {
+        Unk_030055D0.unk_33 = 0;
+        Unk_03004108 = 0;
+        self->func = Unk_0817BCC8[Unk_03004108];
+        return;
+    }
+
+    func_0804B718(Unk_030037E0);
+
+    if (Unk_03005324 != 0)
+    {
+        (Unk_03002410.tasks + Unk_03002410.unk_01)->func = Unk_0817BCC8[Unk_03004108];
+        Unk_030055D0.unk_2F = 0;
+        Unk_03004E1C = 0;
+        return;
+    }
+
+    if ((Unk_030055D0.unk_33 & 0x80) != 0)
+    {
+        func_08002288(self);
+        return;
+    }
+    else if (Unk_030055D0.unk_33 != 0)
+    {
+        Unk_030055D0.unk_33 = 0;
+        Unk_03004108 = 0;
+        (Unk_03002410.tasks + Unk_03002410.unk_01)->func = Unk_0817BCC8[Unk_03004108];
+        return;
+    }
+
+    func_08005C08();
+    func_080494A0(Unk_030037E0[0].unk_061);
+    func_08099D18();
+
+    if (Unk_03005324 != 0)
+    {
+        Unk_03004E1C = 0;
+        Unk_030055D0.unk_2F = 0;
+        self->func = Unk_0817BCC8[Unk_03004108];
+        return;
+    }
+
+    func_0808144C();
+    func_08079B10();
+    func_08070E30();
+    func_0805DAA4();
+    func_08080A84();
+    func_08002894(Unk_030055D0.unk_10);
+    func_08065C64();
+    func_0806BE18(0);
+    func_0806AC30();
+
+    if (Unk_03003100 != 0)
+    {
+        func_080B3A84();
+        func_080C448C();
+        func_0805B18C();
+        Unk_03003100 = 0;
+    }
+
+    func_08003DB0();
+
+    (Unk_03002410.tasks + Unk_03002410.unk_01)->func = Unk_0817BCC8[Unk_03004108];
+}
+
+void func_08002288(struct Task * self)
+{
+    func_080C46A0();
+    func_080656C8();
+
+    Unk_030055D0.unk_33 = 0;
+
+    func_080049F4();
+    func_08003DB0();
+
+    while (TRUE)
+    {
+        for (;;)
+        {
+            func_08000314(1);
+            func_08065FAC();
+            func_08038AA8();
+
+            if (Unk_08181F40 != 0)
+                func_08006D20();
+
+            if ((Unk_030055D0.unk_33 & 0x80) != 0)
+            {
+                Unk_030055D0.unk_33 = 0;
+                func_080049F4();
+            }
+
+            if ((Unk_030055D0.unk_33 & 0x80) == 0)
+            {
+                break;
+            }
+        }
+
+        if (Unk_030055D0.unk_33 == 0)
+        {
+            func_080494A0(Unk_030037E0[0].unk_061);
+            func_08099D18();
+            func_0808144C();
+
+            if ((Unk_03004148 & 0x20) == 0)
+            {
+                func_08079B10();
+            }
+
+            func_08070E30();
+            func_0805DAA4();
+            func_08002894(Unk_030055D0.unk_10);
+            func_08065C64();
+
+            if (Unk_03003100 != 0)
+            {
+                func_080B3A84();
+                Unk_03003100 = 0;
+            }
+
+            func_08003DB0();
+        }
+        else
+        {
+            break;
+        }
+    }
+
+    Unk_030055D0.unk_33 = 0;
+
+    if (Unk_0300310C != 0xFF)
+    {
+        func_08003D30(0x10, 0);
+    }
+
+    for (;;)
+    {
+        func_08000314(1);
+        func_08065FAC();
+        func_080494A0(Unk_030037E0[0].unk_061);
+        func_0808144C();
+
+        if ((Unk_03004148 & 0x20) == 0)
+        {
+            func_08079B10();
+        }
+
+        func_08070E30();
+        func_0805DAA4();
+        func_08002894(Unk_030055D0.unk_10);
+        func_08065C64();
+        func_08003DB0();
+
+        if (Unk_0300310C != 1)
+        {
+            break;
+        }
+    }
+
+    func_08008DE4();
+    func_080075F4(7);
+    func_080018B0();
+
+    Unk_03003110.unk_4C = 0;
+    Unk_03003110.unk_A4 = Unk_03005350.unk_08;
+    Unk_030023C8 = 8;
+    Unk_030023A4 = 8;
+    Unk_0300239C = 32;
+    Unk_030023D4 = 32;
+
+    func_080467C4();
+
+    if (Unk_03004144 == 0)
+    {
+        func_08004B48(Unk_03003110.unk_A4);
+    }
+
+    if (Unk_03004108 == 0)
+    {
+        self->func = Unk_0817BCC8[0];
+    }
+    else
+    {
+        func_080049B8();
+
+        if (Unk_03003110.unk_A4 == 0)
+        {
+            func_080434E8(1);
+        }
+
+        func_0806572C();
+    }
+}
+
+void func_08002500(struct Task * self)
+{
+    Unk_030054F8 = func_080012FC(Unk_030054F8);
+}
+
+fu8 CheckFlag_08002524(fu16 flag)
+{
+    fu8 bank;
+
+    SHOULD_BE_STATIC u8 const bit_lut[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
+
+    switch (flag)
+    {
+        case FLAG_100:
+            return SavedGameState.unk_4B8 & 1;
+
+        case FLAG_101:
+            return SavedGameState.unk_4B8 & 2;
+
+        default:
+            bank = flag / CHAR_BIT;
+            return SavedGameState.flags[bank] & bit_lut[flag % CHAR_BIT]; // (1 << (flag % CHAR_BIT))
+    }
+}
+
+void SetFlag_080025E8(fu16 flag)
+{
+    SHOULD_BE_STATIC u8 const bit_lut[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
+
+    fu8 bank = flag / CHAR_BIT;
+
+    switch (flag)
+    {
+        case FLAG_100:
+            SavedGameState.unk_4B8 |= 1;
+            break;
+
+        case FLAG_101:
+            SavedGameState.unk_4B8 |= 2;
+            break;
+
+        default:
+            SavedGameState.flags[bank] |= bit_lut[flag % CHAR_BIT]; // (1 << (flag % CHAR_BIT))
+            Unk_03006AF0.unk_0E = SavedGameState.flags[2] | (SavedGameState.flags[3] << CHAR_BIT);
+            break;
+    }
+}
+
+void ClearFlag_08002724(fu16 flag)
+{
+    SHOULD_BE_STATIC u8 const bit_lut[] = { 0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80 };
+
+    fu8 bank = flag / CHAR_BIT;
+
+    switch (flag)
+    {
+        case FLAG_100:
+            SavedGameState.unk_4B8 &= ~1;
+            break;
+
+        case FLAG_101:
+            SavedGameState.unk_4B8 &= ~2;
+            break;
+
+        default:
+            SavedGameState.flags[bank] &= ~bit_lut[flag % CHAR_BIT]; // (1 << (flag % CHAR_BIT))
+            break;
+    }
 }

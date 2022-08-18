@@ -64,7 +64,7 @@ void AgbPutc(char chr)
         AgbPrintFlush1Block();
 }
 
-void AgbPrintSt(char const * str)
+void AgbPrint(char const * str)
 {
     struct AgbPrintSt volatile * st = AGB_PRINT_STRUCT;
     u16 volatile * p_waitcnt = &REG_WAITCNT;
@@ -89,7 +89,7 @@ void AgbPrintf(char const * fmt, ...)
     vsprintf(buf, fmt, args);
     va_end(args);
 
-    AgbPrintSt(buf);
+    AgbPrint(buf);
 }
 
 static void AgbPrintTransferDataInternal(int all_data)
